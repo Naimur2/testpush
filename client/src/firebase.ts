@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 
 import { getFirestore } from "@firebase/firestore";
-// @ts-expect-error
+
 import { initializeApp } from "firebase/app";
 
 // TODO: Add SDKs for Firebase products that you want to use

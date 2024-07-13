@@ -13,7 +13,7 @@ function Login(props: Readonly<TLogin>) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const login = async (e) => {
+    const login = async (e: { preventDefault: () => void }) => {
         try {
             e.preventDefault();
             const userRef = collection(db, "users");

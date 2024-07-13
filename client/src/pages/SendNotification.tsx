@@ -7,7 +7,7 @@ function SendNotification() {
     const [title, setTitle] = useState("");
     const [body, setBody] = useState("");
 
-    const sendNotification = async (e) => {
+    const sendNotification = async (e: { preventDefault: () => void }) => {
         try {
             e.preventDefault();
             const tokenRef = collection(db, "fcmTokens");
@@ -15,20 +15,17 @@ function SendNotification() {
 
             const fcmTokens = tokenSnap.docs.map((doc) => doc.data().token);
 
-            const response = await fetch(
-                "http://localhost:4000/send-notification",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        fcmTokens,
-                        title,
-                        body,
-                    }),
-                }
-            );
+            const response = await fetch("/send-notification", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    fcmTokens,
+                    title,
+                    body,
+                }),
+            });
 
             const data = await response.json();
             console.log(data);
