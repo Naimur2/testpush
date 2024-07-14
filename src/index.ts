@@ -54,6 +54,6 @@ app.post("/send-notification", async (req, res) => {
 
 // get all tokens from the firebase firestore
 
-app.listen(4000, () => {
-    console.log("Server is running on port 4000");
+app.listen(10000, () => {
+    console.log("Server is running on port 10000");
 });
