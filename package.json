@@ -7,7 +7,7 @@
     "dev": "bun --hot run src/index.ts",
     "tsc": "tsc",
     "build": "tsc && tsc-alias",
-    "deploy": "yarn install && yarn build && cd client && yarn install && yarn build && cd .. && node build/index.js"
+    "deploy": "yarn install && cd client && yarn install && yarn build && cd .. && node build/index.js"
   },
   "keywords": [],
   "author": "",
