@@ -27,33 +27,38 @@ app.get("/", (req, res) => {
 });
 
 app.post("/send-notification", async (req, res) => {
-    const fcmTokens = req?.body?.["fcmTokens"];
-    const title = req?.body?.["title"];
-    const body = req?.body?.["body"];
+    try {
+        const fcmTokens = req?.body?.["fcmTokens"];
+        const title = req?.body?.["title"];
+        const body = req?.body?.["body"];
 
-    if (!fcmTokens || !title || !body) {
-        return res.status(400).json({
-            message: "fcmTokens, title, and body are required",
+        if (!fcmTokens || !title || !body) {
+            return res.status(400).json({
+                message: "fcmTokens, title, and body are required",
+            });
+        }
+
+        if (!Array.isArray(fcmTokens)) {
+            return res.status(400).json({
+                message: "fcmTokens must be an array",
+            });
+        }
+
+        await sendPushNotification({
+            fcmTokens: fcmTokens,
+            title,
+            body,
         });
+
+        res.status(200).json({ message: "Notification sent successfully" });
+    } catch (error) {
+        console.log("error", error);
+        res.status(500).json({ message: "Internal server error" });
     }
-
-    if (!Array.isArray(fcmTokens)) {
-        return res.status(400).json({
-            message: "fcmTokens must be an array",
-        });
-    }
-
-    await sendPushNotification({
-        fcmTokens: fcmTokens,
-        title,
-        body,
-    });
-
-    res.status(200).json({ message: "Notification sent successfully" });
 });
 
 // get all tokens from the firebase firestore
 
-app.listen(10000, () => {
-    console.log("Server is running on port 10000");
+app.listen(4000, () => {
+    console.log("Server is running on port 4000");
 });

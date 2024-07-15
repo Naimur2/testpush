@@ -15,17 +15,20 @@ function SendNotification() {
 
             const fcmTokens = tokenSnap.docs.map((doc) => doc.data().token);
 
-            const response = await fetch("/send-notification", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    fcmTokens,
-                    title,
-                    body,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_APP_API_URL!}/send-notification`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        fcmTokens,
+                        title,
+                        body,
+                    }),
+                }
+            );
 
             const data = await response.json();
             console.log(data);
