@@ -8,15 +8,24 @@ import path from "path";
 const app = express();
 
 app.use(express.json());
-app.use(cors());
 
 app.use(helmet());
+
+app.use(cors());
 
 app.use(morgan("dev"));
 
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.text());
+
+app.use((req, res, next) => {
+    res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; connect-src 'self' https://firestore.googleapis.com"
+    );
+    next();
+});
 
 app.use(express.static(path.join(__dirname, "../dist")));
 
