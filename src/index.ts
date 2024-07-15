@@ -18,9 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.text());
 
-app.use(express.static(path.join(__dirname, "../client", "dist")));
+app.use(express.static(path.join(__dirname, "dist")));
 
-const CLIENT_DIRECTORY = path.join(__dirname, "../client", "dist");
+const CLIENT_DIRECTORY = path.join(__dirname, "dist");
 
 app.get("/", (req, res) => {
     res.sendFile(path.resolve(CLIENT_DIRECTORY, "index.html"));
