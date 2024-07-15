@@ -25,34 +25,40 @@ app.use((0, helmet_1.default)());
 app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.text());
-app.use(express_1.default.static(path_1.default.join(__dirname, "../client", "dist")));
-const CLIENT_DIRECTORY = path_1.default.join(__dirname, "../client", "dist");
+app.use(express_1.default.static(path_1.default.join(__dirname, "../dist")));
+const CLIENT_DIRECTORY = path_1.default.join(__dirname, "../dist");
 app.get("/", (req, res) => {
     res.sendFile(path_1.default.resolve(CLIENT_DIRECTORY, "index.html"));
 });
 app.post("/send-notification", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
-    const fcmTokens = (_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a["fcmTokens"];
-    const title = (_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b["title"];
-    const body = (_c = req === null || req === void 0 ? void 0 : req.body) === null || _c === void 0 ? void 0 : _c["body"];
-    if (!fcmTokens || !title || !body) {
-        return res.status(400).json({
-            message: "fcmTokens, title, and body are required",
+    try {
+        const fcmTokens = (_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a["fcmTokens"];
+        const title = (_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b["title"];
+        const body = (_c = req === null || req === void 0 ? void 0 : req.body) === null || _c === void 0 ? void 0 : _c["body"];
+        if (!fcmTokens || !title || !body) {
+            return res.status(400).json({
+                message: "fcmTokens, title, and body are required",
+            });
+        }
+        if (!Array.isArray(fcmTokens)) {
+            return res.status(400).json({
+                message: "fcmTokens must be an array",
+            });
+        }
+        yield (0, sendNotification_1.default)({
+            fcmTokens: fcmTokens,
+            title,
+            body,
         });
+        res.status(200).json({ message: "Notification sent successfully" });
     }
-    if (!Array.isArray(fcmTokens)) {
-        return res.status(400).json({
-            message: "fcmTokens must be an array",
-        });
+    catch (error) {
+        console.log("error", error);
+        res.status(500).json({ message: "Internal server error" });
     }
-    yield (0, sendNotification_1.default)({
-        fcmTokens: fcmTokens,
-        title,
-        body,
-    });
-    res.status(200).json({ message: "Notification sent successfully" });
 }));
 // get all tokens from the firebase firestore
-app.listen(4000, () => {
-    console.log("Server is running on port 4000");
+app.listen(10000, () => {
+    console.log("Server is running on port 10000");
 });

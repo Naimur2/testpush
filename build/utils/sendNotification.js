@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const fcm_node_http_1 = require("@kazion/fcm-node-http");
+const firebase_config_1 = __importDefault(require("../config/firebase.config"));
 const path_1 = __importDefault(require("path"));
 const path_to_private_key = path_1.default.join(__dirname, "../../easyresult-cda44-firebase-adminsdk-dg0d9-e7eab06777.json");
 var AndroidMessagePriority;
@@ -23,39 +24,14 @@ var AndroidMessagePriority;
 const fcm = new fcm_node_http_1.FCM(path_to_private_key);
 const sendPushNotification = (_a) => __awaiter(void 0, [_a], void 0, function* ({ fcmTokens, title, body, channel = "general", pressAction = "default", }) {
     try {
-        yield fcm.sendAll(fcmTokens, {
-            notification: {
-                body: body,
-                title: title,
-            },
-            data: {
-                type: "general",
-                notifee: JSON.stringify({
-                    title: title,
-                    body: body,
-                    android: {
-                        channelId: channel,
-                        pressAction: {
-                            id: pressAction,
-                        },
-                    },
-                }),
-            },
-            android: {
-                priority: AndroidMessagePriority.HIGH,
-                collapse_key: "general",
-                ttl: "3600s",
-                restricted_package_name: "com.easyresultbd.app",
+        const messages = [];
+        fcmTokens.forEach((token) => {
+            const msz = {
+                token: token,
                 notification: {
                     title: title,
                     body: body,
-                    icon: "ic_notification",
-                    channel_id: channel,
                 },
-                fcm_options: {
-                    analytics_label: "analytics",
-                },
-                direct_boot_ok: true,
                 data: {
                     type: "general",
                     notifee: JSON.stringify({
@@ -69,10 +45,92 @@ const sendPushNotification = (_a) => __awaiter(void 0, [_a], void 0, function* (
                         },
                     }),
                 },
-            },
+                android: {
+                    priority: "high",
+                    collapseKey: "general",
+                    restrictedPackageName: "com.easyresultbd.app",
+                    notification: {
+                        title: title,
+                        body: body,
+                        icon: "ic_notification",
+                        channelId: channel || "general",
+                        sticky: true,
+                        priority: "high",
+                        clickAction: "easyresultbd://notice",
+                    },
+                    fcmOptions: {
+                        analyticsLabel: "analytics",
+                    },
+                    data: {
+                        type: "general",
+                        notifee: JSON.stringify({
+                            title: title,
+                            body: body,
+                            android: {
+                                channelId: channel,
+                                pressAction: {
+                                    id: pressAction,
+                                },
+                            },
+                        }),
+                    },
+                    ttl: 3600,
+                },
+            };
+            messages.push(msz);
         });
+        yield firebase_config_1.default.messaging().sendEach(messages);
+        // await fcm.sendAll(fcmTokens, {
+        //     notification: {
+        //         body: body,
+        //         title: title,
+        //     },
+        //     data: {
+        //         type: "general",
+        //         notifee: JSON.stringify({
+        //             title: title,
+        //             body: body,
+        //             android: {
+        //                 channelId: channel,
+        //                 pressAction: {
+        //                     id: pressAction,
+        //                 },
+        //             },
+        //         }),
+        //     },
+        //     android: {
+        //         priority: AndroidMessagePriority.HIGH,
+        //         collapse_key: "general",
+        //         ttl: "3600s",
+        //         restricted_package_name: "com.easyresultbd.app",
+        //         notification: {
+        //             title: title,
+        //             body: body,
+        //             icon: "ic_notification",
+        //             channel_id: channel,
+        //         },
+        //         fcm_options: {
+        //             analytics_label: "analytics",
+        //         },
+        //         direct_boot_ok: true,
+        //         data: {
+        //             type: "general",
+        //             notifee: JSON.stringify({
+        //                 title: title,
+        //                 body: body,
+        //                 android: {
+        //                     channelId: channel,
+        //                     pressAction: {
+        //                         id: pressAction,
+        //                     },
+        //                 },
+        //             }),
+        //         },
+        //     },
+        // });
     }
     catch (error) {
+        console.log(JSON.stringify(error));
         throw new Error(error);
     }
 });
