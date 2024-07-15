@@ -8,7 +8,7 @@
     "tsc": "tsc",
     "build": "tsc && tsc-alias",
     "deploy": "yarn install && cd client && yarn install && yarn build && cd .. && node build/index.js",
-    "start":"bun run src/index.ts"
+    "start":"bun run build/index.js"
   },
   "keywords": [],
   "author": "",
