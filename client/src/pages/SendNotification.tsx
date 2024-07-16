@@ -1,7 +1,5 @@
-import { collection, getDocs } from "@firebase/firestore";
 import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
-import { db } from "../firebase";
 
 function SendNotification() {
     const [title, setTitle] = useState("");
@@ -10,10 +8,10 @@ function SendNotification() {
     const sendNotification = async (e: { preventDefault: () => void }) => {
         try {
             e.preventDefault();
-            const tokenRef = collection(db, "fcmTokens");
-            const tokenSnap = await getDocs(tokenRef);
 
-            const fcmTokens = tokenSnap.docs.map((doc) => doc.data().token);
+            const accessToken = localStorage.getItem("accessToken");
+
+            console.log("accessToken", accessToken);
 
             const response = await fetch(
                 `${import.meta.env.VITE_APP_API_URL!}/send-notification`,
@@ -21,9 +19,9 @@ function SendNotification() {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
                     },
                     body: JSON.stringify({
-                        fcmTokens,
                         title,
                         body,
                     }),

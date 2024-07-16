@@ -37,9 +37,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.text());
 
-app.use(express.static(path.join(__dirname, "../dist")));
+app.use(express.static(path.join(__dirname, "../views")));
 
-const CLIENT_DIRECTORY = path.join(__dirname, "../dist");
+const CLIENT_DIRECTORY = path.join(__dirname, "../views");
 
 app.get("/", (req, res) => {
     res.sendFile(path.resolve(CLIENT_DIRECTORY, "index.html"));
@@ -92,6 +92,8 @@ app.post("/send-notification", async (req, res) => {
     try {
         const accessToken = req?.headers?.["authorization"]?.split(" ")[1];
 
+        console.log("accessToken", accessToken);
+
         if (!accessToken) {
             return res.status(401).json({
                 message: "Access token is required",
@@ -116,6 +118,14 @@ app.post("/send-notification", async (req, res) => {
         }
 
         const fcmTokens = await FcmToken.find();
+
+        const tokens = fcmTokens.map((fcmToken) => fcmToken.token);
+
+        if (!tokens.length) {
+            return res.status(400).json({
+                message: "No devices registered",
+            });
+        }
 
         await sendPushNotification({
             fcmTokens: fcmTokens.map((fcmToken) => fcmToken.token),
@@ -178,17 +188,19 @@ app.post("/login", async (req, res) => {
             expiresIn: "365d",
         });
 
+        console.log({ jwtToken });
+
         if (!isPasswordValid) {
             return res.status(400).json({
                 message: "Invalid password",
-                data: {
-                    accessToken: jwtToken,
-                },
             });
         }
 
         res.status(200).json({
             message: "Login successful",
+            data: {
+                accessToken: jwtToken,
+            },
         });
     } catch (error) {
         console.log("error", error);

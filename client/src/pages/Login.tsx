@@ -1,39 +1,39 @@
-import { collection, getDocs } from "@firebase/firestore";
+import axios from "axios";
 import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
-import { db } from "../firebase";
 
 type TLogin = {
     setLoggedIn: (loggedIn: boolean) => void;
 };
 
 function Login(props: Readonly<TLogin>) {
-    const [user, setUser] = useState<string | null>(null);
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const login = async (e: { preventDefault: () => void }) => {
         try {
             e.preventDefault();
-            const userRef = collection(db, "users");
-            const tokenSnap = await getDocs(userRef);
-
-            const findUser = tokenSnap.docs.find(
-                (doc) =>
-                    doc.data().email === email &&
-                    doc.data().password === password
+            const response = await axios.post(
+                import.meta.env.VITE_APP_API_URL + "/login",
+                {
+                    email,
+                    password,
+                }
             );
 
-            if (!findUser) {
-                alert("User not found");
+            const data = response.data;
+
+            const accessToken = data.data?.accessToken;
+
+            if (!accessToken) {
+                alert("Invalid email or password");
                 return;
             }
 
-            setUser(findUser.data().email);
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("user", email);
 
             props?.setLoggedIn(true);
-            localStorage.setItem("user", findUser.data().email);
         } catch (error) {
             console.error(error);
             alert("An error occurred while logging in");
@@ -71,7 +71,6 @@ function Login(props: Readonly<TLogin>) {
                         Login
                     </Button>
                 </Form>
-                {user && <h3 className="mt-4">Welcome {user}</h3>}
             </div>
         </main>
     );
