@@ -4,6 +4,24 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
+import dotenv from "dotenv";
+import argon2 from "argon2";
+import mongoose from "mongoose";
+import User from "model/user.dt";
+import FcmToken from "model/fcmToken.dt";
+import jwt from "jsonwebtoken";
+
+dotenv.config();
+
+mongoose
+    .connect(process.env.MONGO_URI!)
+    .then(() => {
+        console.log("Connected to the database");
+    })
+    .catch((error) => {
+        console.log("error", error);
+        process.exit(1);
+    });
 
 const app = express();
 
@@ -19,14 +37,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.text());
 
-app.use((req, res, next) => {
-    res.setHeader(
-        "Content-Security-Policy",
-        "default-src 'self'; connect-src 'self' https://firestore.googleapis.com"
-    );
-    next();
-});
-
 app.use(express.static(path.join(__dirname, "../dist")));
 
 const CLIENT_DIRECTORY = path.join(__dirname, "../dist");
@@ -35,26 +45,80 @@ app.get("/", (req, res) => {
     res.sendFile(path.resolve(CLIENT_DIRECTORY, "index.html"));
 });
 
+app.post("/register", async (req, res) => {
+    try {
+        const email = req?.body?.["email"];
+        const password = req?.body?.["password"];
+
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "email and password are required",
+            });
+        }
+
+        // check if the user already exists
+        const user = await User.findOne({ email });
+
+        if (user) {
+            return res.status(400).json({
+                message: "User already exists",
+            });
+        }
+
+        const hashedPassword = await argon2.hash(password);
+
+        const newUser = new User({
+            email,
+            password: hashedPassword,
+        });
+
+        await newUser.save();
+
+        const dataToSend = {
+            email,
+        };
+
+        res.status(200).json({
+            message: "Token registered successfully",
+            data: dataToSend,
+        });
+    } catch (error) {
+        console.log("error", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 app.post("/send-notification", async (req, res) => {
     try {
-        const fcmTokens = req?.body?.["fcmTokens"];
+        const accessToken = req?.headers?.["authorization"]?.split(" ")[1];
+
+        if (!accessToken) {
+            return res.status(401).json({
+                message: "Access token is required",
+            });
+        }
+
+        const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!);
+
+        if (!decoded) {
+            return res.status(401).json({
+                message: "Invalid access token",
+            });
+        }
+
         const title = req?.body?.["title"];
         const body = req?.body?.["body"];
 
-        if (!fcmTokens || !title || !body) {
+        if (!title || !body) {
             return res.status(400).json({
-                message: "fcmTokens, title, and body are required",
+                message: "title and body are required",
             });
         }
 
-        if (!Array.isArray(fcmTokens)) {
-            return res.status(400).json({
-                message: "fcmTokens must be an array",
-            });
-        }
+        const fcmTokens = await FcmToken.find();
 
         await sendPushNotification({
-            fcmTokens: fcmTokens,
+            fcmTokens: fcmTokens.map((fcmToken) => fcmToken.token),
             title,
             body,
         });
@@ -66,8 +130,72 @@ app.post("/send-notification", async (req, res) => {
     }
 });
 
-// get all tokens from the firebase firestore
+app.post("/register-token", async (req, res) => {
+    try {
+        const token = req?.body?.["token"];
 
-app.listen(10000, () => {
-    console.log("Server is running on port 10000");
+        if (!token) {
+            return res.status(400).json({
+                message: "token is required",
+            });
+        }
+
+        await FcmToken.create({
+            token,
+        });
+
+        res.status(200).json({
+            message: "Token registered successfully",
+        });
+    } catch (error) {
+        console.log("error", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.post("/login", async (req, res) => {
+    try {
+        const email = req?.body?.["email"];
+        const password = req?.body?.["password"];
+
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "email and password are required",
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found",
+            });
+        }
+
+        const isPasswordValid = await argon2.verify(user.password, password);
+
+        const jwtToken = jwt.sign({ email }, process.env.JWT_SECRET!, {
+            expiresIn: "365d",
+        });
+
+        if (!isPasswordValid) {
+            return res.status(400).json({
+                message: "Invalid password",
+                data: {
+                    accessToken: jwtToken,
+                },
+            });
+        }
+
+        res.status(200).json({
+            message: "Login successful",
+        });
+    } catch (error) {
+        console.log("error", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.listen(process.env.PORT || 4000, () => {
+    console.log("Server is running on port", process.env.PORT || 4000);
 });
