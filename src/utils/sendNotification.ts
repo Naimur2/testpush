@@ -53,7 +53,7 @@ const sendPushNotification = async ({
                         },
                     }),
                 },
-                android: {
+                /* android: {
                     priority: "high",
                     collapseKey: "general",
                     restrictedPackageName: "com.easyresultbd.app",
@@ -83,7 +83,7 @@ const sendPushNotification = async ({
                         }),
                     },
                     ttl: 3600,
-                },
+                }, */
             };
 
             messages.push(msz);
