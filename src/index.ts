@@ -167,6 +167,7 @@ app.post("/register-token", async (req, res) => {
 
         await FcmToken.create({
             token,
+            deviceId,
         });
 
         res.status(200).json({
