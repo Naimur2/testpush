@@ -45,7 +45,7 @@ const sendPushNotification = (_a) => __awaiter(void 0, [_a], void 0, function* (
                         },
                     }),
                 },
-                android: {
+                /* android: {
                     priority: "high",
                     collapseKey: "general",
                     restrictedPackageName: "com.easyresultbd.app",
@@ -75,7 +75,7 @@ const sendPushNotification = (_a) => __awaiter(void 0, [_a], void 0, function* (
                         }),
                     },
                     ttl: 3600,
-                },
+                }, */
             };
             messages.push(msz);
         });

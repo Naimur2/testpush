@@ -125,9 +125,21 @@ app.post("/send-notification", (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 }));
 app.post("/register-token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const token = (_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a["token"];
+        const deviceId = (_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b["deviceId"];
+        const existingToken = yield fcmToken_dt_1.default.findOne({
+            deviceId,
+        });
+        if (existingToken) {
+            yield existingToken.updateOne({
+                token,
+            });
+            return res.status(200).json({
+                message: "Token updated successfully",
+            });
+        }
         if (!token) {
             return res.status(400).json({
                 message: "token is required",

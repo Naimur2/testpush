@@ -26,6 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const FcmTokenSchema = new mongoose_1.Schema({
     token: { type: String, required: true },
+    deviceId: { type: String, required: false },
 });
 const FcmToken = mongoose_1.default.model("FcmToken", FcmTokenSchema);
 exports.default = FcmToken;
