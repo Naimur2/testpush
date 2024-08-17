@@ -143,6 +143,21 @@ app.post("/send-notification", async (req, res) => {
 app.post("/register-token", async (req, res) => {
     try {
         const token = req?.body?.["token"];
+        const deviceId = req?.body?.["deviceId"];
+
+        const existingToken = await FcmToken.findOne({
+            deviceId,
+        });
+
+        if (existingToken) {
+            await existingToken.updateOne({
+                token,
+            });
+
+            return res.status(200).json({
+                message: "Token updated successfully",
+            });
+        }
 
         if (!token) {
             return res.status(400).json({
