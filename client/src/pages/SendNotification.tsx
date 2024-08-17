@@ -30,6 +30,8 @@ function SendNotification() {
 
             const data = await response.json();
             console.log(data);
+            setTitle("");
+            setBody("");
             alert(data.message);
         } catch (error) {
             console.error(error);
