@@ -147,6 +147,7 @@ app.post("/register-token", (req, res) => __awaiter(void 0, void 0, void 0, func
         }
         yield fcmToken_dt_1.default.create({
             token,
+            deviceId,
         });
         res.status(200).json({
             message: "Token registered successfully",
